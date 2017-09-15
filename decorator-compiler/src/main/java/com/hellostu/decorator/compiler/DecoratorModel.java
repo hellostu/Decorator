@@ -88,7 +88,7 @@ public class DecoratorModel {
         }
         typeSpecBuilder.addTypeVariables(typeVariableNames);
 
-        return JavaFile.builder(packageName, typeSpecBuilder.build()).build();
+        return JavaFile.builder(packageName, typeSpecBuilder.addModifiers(Modifier.PUBLIC).build()).build();
     }
 
 }
