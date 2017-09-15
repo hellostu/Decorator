@@ -1,6 +1,17 @@
-group 'com.hellostu.decorator'
-version '1.0'
+subprojects { project ->
+    repositories {
+        jcenter()
+    }
+}
 
-repositories {
-    jcenter()
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    }
 }

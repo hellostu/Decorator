@@ -2,15 +2,14 @@ package com.hellostu.decorator.compiler;
 
 import com.google.auto.service.AutoService;
 import com.hellostu.decorator.Decoratable;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
-import com.sun.tools.javac.code.Symbol;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,12 +85,22 @@ public final class DecoratorProcessor extends AbstractProcessor {
             typeVariableNames.add(TypeVariableName.get(typeParameterElement));
         }
         DecoratorModel decoratorModel = new DecoratorModel(packageName, className, typeElement.asType(), typeVariableNames);
-        for(Element element : typeElement.getEnclosedElements()) {
-            if(element.getKind() == ElementKind.METHOD) {
-                Symbol.MethodSymbol methodSymbol = (Symbol.MethodSymbol) element;
-                decoratorModel.addMethod(methodSymbol);
-            }
-        }
+        addInterfaceMethods(decoratorModel, typeElement);
         return decoratorModel;
     }
+
+    private void addInterfaceMethods(DecoratorModel decoratorModel, TypeElement typeElement) {
+        for(Element element : typeElement.getEnclosedElements()) {
+            if(element.getKind() == ElementKind.METHOD) {
+                ExecutableElement executableElement = (ExecutableElement) element;
+                decoratorModel.addMethod(executableElement);
+            }
+        }
+
+        for(TypeMirror type : typeElement.getInterfaces()) {
+            TypeElement interfaceTypeElement = (TypeElement)((DeclaredType)type).asElement();
+            addInterfaceMethods(decoratorModel, interfaceTypeElement);
+        }
+    }
+
 }

@@ -1,9 +1,10 @@
 package com.hellostu.decorator.compiler;
 
 import com.squareup.javapoet.*;
-import com.sun.tools.javac.code.Symbol;
 
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ public class DecoratorModel {
     private String                          className;
     private TypeMirror                      typeMirror;
     private Iterable<TypeVariableName>      typeVariableNames;
-    private ArrayList<Symbol.MethodSymbol>  methods;
+    private ArrayList<ExecutableElement>    methods;
 
     ///////////////////////////////////////////////////////////////
     // LIFECYCLE
@@ -32,7 +33,7 @@ public class DecoratorModel {
     // LIFECYCLE
     ///////////////////////////////////////////////////////////////
 
-    public void addMethod(Symbol.MethodSymbol method) {
+    public void addMethod(ExecutableElement method) {
         methods.add(method);
     }
 
@@ -53,34 +54,34 @@ public class DecoratorModel {
                 .addField(decoratedField)
                 .addMethod(constructor);
 
-        for(Symbol.MethodSymbol methodSymbol : methods) {
-            MethodSpec.Builder methodSpecBuilder = MethodSpec.methodBuilder(methodSymbol.name.toString())
+        for(ExecutableElement executableElement : methods) {
+            MethodSpec.Builder methodSpecBuilder = MethodSpec.methodBuilder(executableElement.getSimpleName().toString())
                     .addModifiers(Modifier.PUBLIC)
                     .addAnnotation(Override.class);
 
-            List<Symbol.VarSymbol> params = methodSymbol.params();
-            for(Symbol.VarSymbol varSymbol : params) {
-                methodSpecBuilder.addParameter(TypeName.get(varSymbol.type), varSymbol.name.toString());
+            List<? extends VariableElement> params = executableElement.getParameters();
+            for(VariableElement param : params) {
+                methodSpecBuilder.addParameter(TypeName.get(param.asType()), param.getSimpleName().toString());
             }
 
             StringBuilder stringBuilder = new StringBuilder();
-            if(methodSymbol.getReturnType().toString().equals("void") == false) {
+            if(executableElement.getReturnType().toString().equals("void") == false) {
                 stringBuilder.append("return ");
             }
             stringBuilder.append("this.decorated.");
-            stringBuilder.append(methodSymbol.name.toString());
+            stringBuilder.append(executableElement.getSimpleName().toString());
             stringBuilder.append("(");
 
             for(int i = 0; i < params.size(); i++) {
-                Symbol.VarSymbol varSymbol = params.get(i);
+                VariableElement param = params.get(i);
                 if(i != 0) {
                     stringBuilder.append(", ");
                 }
-                stringBuilder.append(varSymbol.name);
+                stringBuilder.append(param.getSimpleName().toString());
             }
             stringBuilder.append(")");
 
-            methodSpecBuilder.returns(TypeName.get(methodSymbol.getReturnType()));
+            methodSpecBuilder.returns(TypeName.get(executableElement.getReturnType()));
             methodSpecBuilder.addStatement(stringBuilder.toString());
 
             typeSpecBuilder.addMethod(methodSpecBuilder.build());

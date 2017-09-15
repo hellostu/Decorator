@@ -32,7 +32,7 @@ public class DecoratorTests {
                 "",
                 "import java.lang.Override;",
                 "",
-                "class HelloWorldDecorator implements HelloWorld {",
+                "class HelloWorldDecorator implements HselloWorld {",
                 "  private HelloWorld decorated;",
                 "",
                 "  public HelloWorldDecorator(HelloWorld decorated) {",
@@ -84,6 +84,48 @@ public class DecoratorTests {
                 "  @Override",
                 "  public A processAThing(A initialThing) {",
                 "    return this.decorated.processAThing(initialThing);",
+                "  }",
+                "}");
+        assert_().about(javaSource())
+                .that(javaFileObject)
+                .processedWith(new DecoratorProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(javaFileObject2);
+    }
+
+    @Test
+    public void testChildInterface() {
+        JavaFileObject javaFileObject = JavaFileObjects.forSourceLines("Runnable2",
+                "package com.example.helloworld;",
+                "import com.hellostu.decorator.Decoratable;",
+                "import java.lang.Runnable;",
+                "",
+                "@Decoratable",
+                "public interface Runnable2 extends Runnable {",
+                "void run2();",
+                "}"
+                );
+
+        JavaFileObject javaFileObject2 = JavaFileObjects.forSourceLines("HelloWorldDecorator",
+                "package com.example.helloworld;",
+                "",
+                "import java.lang.Override;",
+                "",
+                "class Runnable2Decorator implements Runnable2 {",
+                "  private Runnable2 decorated;",
+                "",
+                "  public Runnable2Decorator(Runnable2 decorated) {",
+                "    this.decorated = decorated;",
+                "  }",
+                "",
+                "  @Override",
+                "  public void run2() {",
+                "    this.decorated.run2();",
+                "  }",
+                "",
+                "  @Override",
+                "  public void run() {",
+                "    this.decorated.run();",
                 "  }",
                 "}");
         assert_().about(javaSource())
